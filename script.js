@@ -59,3 +59,31 @@ function startPairingTimer() {
     }
   }, 1000);
 }
+
+// Fungsi monitoring dashboard
+function refreshMonitor() {
+  const monitorStatus = document.getElementById("monitorStatus");
+  const monitorSpeed = document.getElementById("monitorSpeed");
+  const monitorRuntime = document.getElementById("monitorRuntime");
+  
+  if (monitorSpeed) {
+    monitorSpeed.textContent = (Math.floor(Math.random() * 40) + 10) + " ms";
+  }
+  
+  console.log("🔄 Monitor refresh");
+}
+
+// Fungsi clear activity
+function clearActivity() {
+  const activityLog = document.getElementById("activityLog");
+  if (activityLog) {
+    activityLog.innerHTML = '<p style="text-align:center; color:#999;">Aktivitas kosong</p>';
+  }
+}
+
+// Fungsi buy premium
+function buyPremium(paket, harga) {
+  const message = `💳 Membeli paket ${paket} seharga ${harga}`;
+  notify(message);
+  console.log(message);
+}
