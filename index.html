@@ -1,903 +1,552 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AKSARA-BOT Dashboard</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+  <title>Digital Clock - Multi Timezone</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: background 0.3s ease;
+    }
+
+    body.light-mode {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      color: white;
+    }
+
+    body.light-mode .header {
+      color: #333;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 25px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn.active {
+      background: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .clocks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .clock-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      color: white;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    body.light-mode .clock-card {
+      background: rgba(255, 255, 255, 0.7);
+      color: #333;
+      border: 1px solid rgba(100, 100, 100, 0.2);
+    }
+
+    .clock-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    body.light-mode .clock-card:hover {
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .timezone-name {
+      font-size: 0.9em;
+      opacity: 0.8;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .digital-time {
+      font-size: 2.5em;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      margin: 15px 0;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    body.light-mode .digital-time {
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .time-details {
+      font-size: 0.9em;
+      opacity: 0.8;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    .time-format-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .format-btn {
+      padding: 8px 16px;
+      border: 2px solid white;
+      border-radius: 20px;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    body.light-mode .format-btn {
+      border-color: #333;
+      color: #333;
+    }
+
+    .format-btn.active {
+      background: white;
+      color: #667eea;
+    }
+
+    body.light-mode .format-btn.active {
+      background: #333;
+      color: white;
+    }
+
+    .status {
+      text-align: center;
+      color: white;
+      font-size: 0.95em;
+      opacity: 0.9;
+    }
+
+    body.light-mode .status {
+      color: #333;
+    }
+
+    .add-timezone {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .add-timezone select,
+    .add-timezone input {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+    }
+
+    .add-timezone select:focus,
+    .add-timezone input:focus {
+      outline: none;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 73, 73, 0.8);
+      color: white;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: all 0.3s ease;
+      display: none;
+    }
+
+    .clock-card {
+      position: relative;
+    }
+
+    .clock-card:hover .remove-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .remove-btn:hover {
+      background: rgba(255, 73, 73, 1);
+      transform: scale(1.1);
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.8em;
+      }
+
+      .digital-time {
+        font-size: 1.8em;
+      }
+
+      .clocks-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
 <body>
 
-<div class="app">
-
-  <!-- SIDEBAR -->
-  <aside id="sidebar" class="sidebar">
-
-    <div class="brand">
-      <div class="brand-icon">🤖</div>
-      <div>
-        <b>AKSARA-BOT</b>
-        <small>WhatsApp Bot</small>
-      </div>
-      <button class="close-btn" onclick="toggleSidebar()">×</button>
-    </div>
-
-    <nav>
-
-      <div class="nav-title">UTAMA</div>
-
-      <button class="nav-item active" onclick="showPage('dashboard')">
-        🏠 <span>Dashboard</span>
-      </button>
-
-      <button class="nav-item" onclick="showPage('profile')">
-        👤 <span>Profil</span>
-      </button>
-
-      <button class="nav-item" onclick="showPage('connect')">
-        🔗 <span>Tautkan Akun</span>
-      </button>
-
-      <button class="nav-item" onclick="showPage('issues')">
-        ⚠️ <span>Issues</span>
-      </button>
-
-      <div class="divider"></div>
-
-      <div class="nav-title">MANAJEMEN</div>
-
-      <button class="nav-item" onclick="showPage('group')">
-        👥 <span>Group</span>
-      </button>
-
-      <button class="nav-item" onclick="showPage('settings')">
-        ⚙️ <span>Pengaturan Bot</span>
-      </button>
-
-      <button class="nav-item" onclick="showPage('connect')">
-        📱 <span>Jadi Bot</span>
-      </button>
-
-      <div class="divider"></div>
-
-      <div class="nav-title">PREMIUM</div>
-
-      <button class="nav-item" onclick="showPage('price')">
-        💳 <span>Harga</span>
-      </button>
-
-      <button class="nav-item" onclick="showPage('history')">
-        🕘 <span>Riwayat</span>
-      </button>
-
-      <div class="divider"></div>
-
-      <div class="nav-title">INFORMASI</div>
-
-      <button class="nav-item" onclick="showPage('invite')">
-        👤➕ <span>Undang Bot</span>
-      </button>
-
-      <button class="nav-item" onclick="showPage('monitoring')">
-        📈 <span>Monitoring</span>
-      </button>
-
-      <button class="nav-item" onclick="showPage('docs')">
-        📖 <span>Dokumentasi</span>
-      </button>
-
-    </nav>
-
-    <div class="sidebar-bottom">
-      <button onclick="toggleLanguage()">🌐 <span id="languageText">Indonesia</span></button>
-      <button onclick="toggleDark()">🌙 Gelap</button>
-      <button class="join">💬 Gabung Grup</button>
-      <button onclick="showPage('dashboard')">🏠 Beranda</button>
-      <button onclick="logout()">🚪 Keluar</button>
-    </div>
-
-  </aside>
-
-  <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
-
-  <!-- MAIN -->
-  <main class="main">
-
-    <header class="topbar">
-      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-
-      <div class="top-title">
-        <b>AKSARA-BOT</b>
-        <span>Dashboard</span>
-      </div>
-
-      <button class="notification" onclick="notify('Tidak ada notifikasi baru 🔔')">
-        🔔
-      </button>
-    </header>
-
-    <!-- DASHBOARD -->
-    <section id="dashboard" class="page active-page">
-
-      <div class="hero">
-        <div>
-          <p class="eyebrow">SELAMAT DATANG</p>
-          <h1>AKSARA-BOT 🤖</h1>
-          <p>Kelola bot WhatsApp kamu dari satu dashboard.</p>
-        </div>
-
-        <div class="status-badge">
-          <span></span> ONLINE
-        </div>
-      </div>
-
-      <div class="stats">
-
-        <div class="stat-card">
-          <div class="stat-icon">🤖</div>
-          <div>
-            <small>Bot Status</small>
-            <strong id="botStatus">Online</strong>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">⏱️</div>
-          <div>
-            <small>Runtime</small>
-            <strong id="runtime">00:00:00</strong>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">⚡</div>
-          <div>
-            <small>Speed</small>
-            <strong id="speed">0 ms</strong>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">📦</div>
-          <div>
-            <small>Version</small>
-            <strong>1.0.0</strong>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">👑</div>
-          <div>
-            <small>Owner</small>
-            <strong>Icaa</strong>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="section-title">
-        <h2>⚡ Aksi Cepat</h2>
-      </div>
-
-      <div class="quick-grid">
-
-        <button onclick="showPage('connect')">
-          🔗
-          <b>Tautkan Bot</b>
-          <small>Pairing Code</small>
-        </button>
-
-        <button onclick="showPage('settings')">
-          ⚙️
-          <b>Pengaturan</b>
-          <small>Atur bot</small>
-        </button>
-
-        <button onclick="showPage('monitoring')">
-          📊
-          <b>Monitoring</b>
-          <small>Lihat aktivitas</small>
-        </button>
-
-        <button onclick="showPage('docs')">
-          📖
-          <b>Dokumentasi</b>
-          <small>Pelajari bot</small>
-        </button>
-
-      </div>
-
-      <div class="section-title">
-        <h2>📋 Menu Bot</h2>
-      </div>
-
-      <div class="menu-grid">
-
-        <button onclick="openMenu('general')">⚙️ General</button>
-        <button onclick="openMenu('fun')">🎲 Fun Menu</button>
-        <button onclick="openMenu('anime')">🌸 Anime Menu</button>
-        <button onclick="openMenu('game')">🎮 Game Menu</button>
-        <button onclick="openMenu('media')">🎬 Media Menu</button>
-        <button onclick="openMenu('download')">📥 Download Menu</button>
-        <button onclick="openMenu('group')">👥 Group Menu</button>
-        <button onclick="openMenu('owner')">👑 Owner Menu</button>
-
-      </div>
-
-    </section>
-
-    <!-- CONNECT / PAIRING -->
-    <section id="connect" class="page">
-
-      <div class="page-header">
-        <div class="page-icon">🔗</div>
-        <div>
-          <h1>Tautkan Bot</h1>
-          <p>Hubungkan akun WhatsApp ke AKSARA-BOT.</p>
-        </div>
-      </div>
-
-      <div class="card">
-
-        <h2>🤖 Konfigurasi Bot</h2>
-
-        <label>Nama Bot</label>
-        <input id="botName" type="text" placeholder="Contoh: AKSARA-BOT">
-
-        <label>Metode Tautkan Perangkat</label>
-
-        <select id="pairMethod">
-          <option value="pairing">Pairing Code</option>
-          <option value="qr">QR Code</option>
-        </select>
-
-        <label>Nomor WhatsApp</label>
-
-        <div class="phone-row">
-          <div class="country">🇮🇩 +62</div>
-          <input id="phoneNumber" type="tel" placeholder="81234567890">
-        </div>
-
-        <small class="hint">
-          Masukkan nomor tanpa tanda + dan tanpa spasi.
-        </small>
-
-        <button class="primary" onclick="requestPairing()">
-          🔗 Minta Pairing Code
-        </button>
-
-      </div>
-
-      <div id="pairingBox" class="pairing-box hidden">
-
-        <div class="pair-icon">🔐</div>
-
-        <h2>Pairing Code</h2>
-
-        <p>Gunakan kode ini pada proses penautan perangkat WhatsApp.</p>
-
-        <div class="pair-code" id="pairCode">
-          --------
-        </div>
-        <div id="pairingTimer" class="pairing-timer">
-  ⏱️ Kode berlaku: <b>01:00</b>
+<div class="container">
+  <div class="header">
+    <h1>⏰ Digital Clock</h1>
+    <p>Worldwide Time Zones</p>
+  </div>
+
+  <div class="controls">
+    <button class="btn active" onclick="toggleTheme()">🌙 Mode Gelap</button>
+    <button class="btn" onclick="resetClocks()">🔄 Reset</button>
+  </div>
+
+  <div class="time-format-toggle">
+    <button class="format-btn active" onclick="setFormat('24h')">24-Hour</button>
+    <button class="format-btn" onclick="setFormat('12h')">12-Hour</button>
+  </div>
+
+  <div class="add-timezone">
+    <select id="timezoneSelect" onchange="addCustomTimezone()">
+      <option value="">+ Tambah Zona Waktu</option>
+      <option value="America/New_York">New York (EST)</option>
+      <option value="Europe/London">London (GMT)</option>
+      <option value="Europe/Paris">Paris (CET)</option>
+      <option value="Asia/Dubai">Dubai (GST)</option>
+      <option value="Asia/Singapore">Singapore (SGT)</option>
+      <option value="Asia/Hong_Kong">Hong Kong (HKT)</option>
+      <option value="Australia/Sydney">Sydney (AEDT)</option>
+      <option value="Pacific/Auckland">Auckland (NZDT)</option>
+      <option value="America/Los_Angeles">Los Angeles (PST)</option>
+      <option value="America/Chicago">Chicago (CST)</option>
+      <option value="America/Denver">Denver (MST)</option>
+      <option value="Asia/Tokyo">Tokyo (JST)</option>
+      <option value="Asia/Shanghai">Shanghai (CST)</option>
+      <option value="Asia/Bangkok">Bangkok (ICT)</option>
+      <option value="Asia/Kolkata">India (IST)</option>
+      <option value="Europe/Moscow">Moscow (MSK)</option>
+      <option value="Africa/Cairo">Cairo (EET)</option>
+      <option value="Africa/Johannesburg">Johannesburg (SAST)</option>
+      <option value="America/Sao_Paulo">São Paulo (BRT)</option>
+    </select>
+  </div>
+
+  <div class="clocks-grid" id="clocksContainer">
+    <!-- Clock cards will be inserted here -->
+  </div>
+
+  <div class="status">
+    <p id="statusText">Memuat waktu...</p>
+  </div>
 </div>
-        <div class="pair-actions">
-          <button onclick="copyPairing()">📋 Salin</button>
-          <button onclick="requestPairing()">🔄 Buat Baru</button>
-        </div>
-
-        <div class="steps">
-          <b>Langkah berikutnya:</b>
-          <p>1. Buka WhatsApp</p>
-          <p>2. Masuk ke Perangkat Tertaut</p>
-          <p>3. Pilih Tautkan dengan nomor telepon</p>
-          <p>4. Masukkan pairing code</p>
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- PROFILE -->
-    <section id="profile" class="page">
-
-      <div class="page-header">
-        <div class="page-icon">👤</div>
-        <div>
-          <h1>Profil</h1>
-          <p>Informasi pemilik bot.</p>
-        </div>
-      </div>
-
-      <div class="card profile-card">
-        <div class="avatar">I</div>
-        <h2>Icaa</h2>
-        <p>Owner AKSARA-BOT</p>
-
-        <button class="primary" onclick="notify('Profil berhasil diperbarui')">
-          ✏️ Edit Profil
-        </button>
-      </div>
-
-    </section>
-
-    <!-- GROUP -->
-    <section id="group" class="page">
-
-      <div class="page-header">
-        <div class="page-icon">👥</div>
-        <div>
-          <h1>Group</h1>
-          <p>Kelola fitur grup bot.</p>
-        </div>
-      </div>
-
-      <div class="settings-list">
-
-        <div>
-          <b>👋 Welcome</b>
-          <span>Pesan anggota baru</span>
-          <input type="checkbox" checked>
-        </div>
-
-        <div>
-          <b>🚫 Anti Link</b>
-          <span>Deteksi link grup</span>
-          <input type="checkbox">
-        </div>
-
-        <div>
-          <b>🛡️ Anti Spam</b>
-          <span>Perlindungan spam</span>
-          <input type="checkbox" checked>
-        </div>
-
-        <div>
-          <b>📢 Auto Tag</b>
-          <span>Tag anggota otomatis</span>
-          <input type="checkbox">
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- SETTINGS -->
-    <section id="settings" class="page">
-
-      <div class="page-header">
-        <div class="page-icon">⚙️</div>
-        <div>
-          <h1>Pengaturan Bot</h1>
-          <p>Atur perilaku AKSARA-BOT.</p>
-        </div>
-      </div>
-
-      <div class="settings-list">
-
-        <div>
-          <b>Prefix</b>
-          <span>Karakter awal command</span>
-          <input class="small-input" value=".">
-        </div>
-
-        <div>
-          <b>Auto Read</b>
-          <span>Otomatis membaca pesan</span>
-          <input type="checkbox" checked>
-        </div>
-
-        <div>
-          <b>Auto Typing</b>
-          <span>Menampilkan status mengetik</span>
-          <input type="checkbox" checked>
-        </div>
-
-        <div>
-          <b>Public Mode</b>
-          <span>Bot dapat digunakan semua orang</span>
-          <input type="checkbox">
-        </div>
-
-      </div>
-
-      <button class="primary" onclick="notify('Pengaturan disimpan ✅')">
-        💾 Simpan Pengaturan
-      </button>
-
-    </section>
-
-    <!-- MONITORING -->
-    <section id="monitoring" class="page">
-
-  <div class="page-header">
-    <div class="page-icon">📊</div>
-    <div>
-      <h1>Monitor Bot</h1>
-      <p>Pantau kondisi AKSARA-BOT secara langsung.</p>
-    </div>
-  </div>
-
-  <!-- STATUS -->
-  <div class="monitor-hero">
-
-    <div class="monitor-status">
-      <div class="online-dot"></div>
-
-      <div>
-        <small>STATUS BOT</small>
-        <h2 id="monitorStatus">ONLINE</h2>
-        <p>Bot sedang berjalan dengan normal.</p>
-      </div>
-    </div>
-
-    <button class="refresh-monitor" onclick="refreshMonitor()">
-      🔄 Refresh
-    </button>
-
-  </div>
-
-  <!-- STATISTICS -->
-  <div class="monitor-grid">
-
-    <div class="monitor-stat">
-      <span>⏱️ Runtime</span>
-      <strong id="monitorRuntime">00:00:00</strong>
-      <small>Waktu aktif bot</small>
-    </div>
-
-    <div class="monitor-stat">
-      <span>⚡ Speed</span>
-      <strong id="monitorSpeed">0 ms</strong>
-      <small>Respons terakhir</small>
-    </div>
-
-    <div class="monitor-stat">
-      <span>💬 Pesan</span>
-      <strong id="monitorMessages">0</strong>
-      <small>Pesan diproses</small>
-    </div>
-
-    <div class="monitor-stat">
-      <span>⌨️ Command</span>
-      <strong id="monitorCommands">0</strong>
-      <small>Command digunakan</small>
-    </div>
-
-    <div class="monitor-stat">
-      <span>👥 User</span>
-      <strong id="monitorUsers">0</strong>
-      <small>User terhubung</small>
-    </div>
-
-    <div class="monitor-stat">
-      <span>🤖 Bot</span>
-      <strong id="monitorBots">1</strong>
-      <small>Bot aktif</small>
-    </div>
-
-  </div>
-
-  <!-- CONNECTION -->
-  <div class="card">
-
-    <div class="card-title-row">
-      <div>
-        <h2>🔗 Koneksi</h2>
-        <p>Status koneksi WhatsApp.</p>
-      </div>
-
-      <span class="connection-online">
-        ● Terhubung
-      </span>
-    </div>
-
-    <div class="connection-info">
-
-      <div>
-        <small>Platform</small>
-        <b>WhatsApp</b>
-      </div>
-
-      <div>
-        <small>Library</small>
-        <b>Baileys</b>
-      </div>
-
-      <div>
-        <small>Mode</small>
-        <b>Public</b>
-      </div>
-
-      <div>
-        <small>Versi</small>
-        <b>1.0.0</b>
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- ACTIVITY -->
-  <div class="card">
-
-    <div class="card-title-row">
-      <div>
-        <h2>📡 Aktivitas</h2>
-        <p>Aktivitas terbaru dashboard.</p>
-      </div>
-
-      <button class="clear-btn" onclick="clearActivity()">
-        Bersihkan
-      </button>
-    </div>
-
-    <div id="activityLog" class="activity-log">
-
-      <div class="activity">
-        <span>🟢</span>
-        <div>
-          <b>Bot online</b>
-          <small>AKSARA-BOT berhasil dijalankan</small>
-        </div>
-        <time>Baru saja</time>
-      </div>
-
-      <div class="activity">
-        <span>🔗</span>
-        <div>
-          <b>Dashboard aktif</b>
-          <small>Sistem monitoring siap digunakan</small>
-        </div>
-        <time>Baru saja</time>
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-    <section id="history" class="page">
-
-      <div class="page-header">
-        <div class="page-icon">🕘</div>
-        <div>
-          <h1>Riwayat</h1>
-          <p>Aktivitas dashboard.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <p>🔗 Bot dashboard dibuka</p>
-        <p>⚙️ Pengaturan diperiksa</p>
-        <p>🤖 Status bot: Online</p>
-      </div>
-
-    </section>
-
-    <!-- DOCS -->
-    <section id="docs" class="page">
-
-      <div class="page-header">
-        <div class="page-icon">📖</div>
-        <div>
-          <h1>Dokumentasi</h1>
-          <p>Panduan penggunaan AKSARA-BOT.</p>
-        </div>
-      </div>
-
-      <div class="card">
-
-        <h2>Command Dasar</h2>
-
-        <div class="command">
-          <code>.menu</code>
-          <span>Menampilkan menu bot</span>
-        </div>
-
-        <div class="command">
-          <code>.ping</code>
-          <span>Mengecek kecepatan bot</span>
-        </div>
-
-        <div class="command">
-          <code>.owner</code>
-          <span>Menampilkan owner</span>
-        </div>
-
-        <div class="command">
-          <code>.runtime</code>
-          <span>Melihat runtime bot</span>
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- OTHER PAGES -->
-    <section id="issues" class="page">
-      <div class="page-header">
-        <div class="page-icon">⚠️</div>
-        <div>
-          <h1>Issues</h1>
-          <p>Masalah dan status sistem.</p>
-        </div>
-      </div>
-      <div class="card success">✅ Tidak ada masalah yang terdeteksi.</div>
-    </section>
-
-    <section id="price" class="page">
-
-  <div class="page-header">
-    <div class="page-icon">👑</div>
-    <div>
-      <h1>Premium Pengguna</h1>
-      <p>Paket premium untuk satu pengguna</p>
-    </div>
-  </div>
-
-  <div class="premium-intro">
-    <h2>Upgrade AKSARA-BOT</h2>
-    <p>Pilih paket yang sesuai dengan kebutuhan kamu.</p>
-  </div>
-
-  <div class="premium-grid">
-
-    <!-- 15 HARI -->
-    <div class="premium-card">
-      <span class="premium-label">HEMAT</span>
-      <h2>15 Hari</h2>
-      <div class="premium-price">Rp 10.000</div>
-      <div class="premium-limit">Limit Spesial: 8</div>
-
-      <ul>
-        <li>✓ Akses fitur premium</li>
-        <li>✓ Semua fitur bot terbuka</li>
-        <li>✓ Dukungan prioritas</li>
-      </ul>
-
-      <div class="premium-note">
-        Paket berlaku untuk satu pengguna.
-      </div>
-
-      <button class="premium-buy"
-              onclick="buyPremium('15 Hari','Rp 10.000')">
-        Beli Sekarang
-      </button>
-    </div>
-
-    <!-- 1 BULAN -->
-    <div class="premium-card popular">
-      <span class="popular-badge">PALING POPULER</span>
-      <h2>1 Bulan</h2>
-      <div class="premium-price">Rp 15.000</div>
-      <div class="premium-limit">Limit Spesial: 15</div>
-
-      <ul>
-        <li>✓ Akses fitur premium</li>
-        <li>✓ Semua fitur bot terbuka</li>
-        <li>✓ Dukungan prioritas 24/7</li>
-      </ul>
-
-      <div class="premium-note">
-        Paket berlaku untuk satu pengguna.
-      </div>
-
-      <button class="premium-buy"
-              onclick="buyPremium('1 Bulan','Rp 15.000')">
-        Beli Sekarang
-      </button>
-    </div>
-
-    <!-- 3 BULAN -->
-    <div class="premium-card">
-      <span class="premium-label">TERBAIK</span>
-      <h2>3 Bulan</h2>
-      <div class="premium-price">Rp 40.000</div>
-      <div class="premium-limit">Limit Spesial: 30</div>
-
-      <ul>
-        <li>✓ Akses fitur premium</li>
-        <li>✓ Semua fitur bot terbuka</li>
-        <li>✓ Dukungan prioritas 24/7</li>
-      </ul>
-
-      <div class="premium-note">
-        Paket berlaku untuk satu pengguna.
-      </div>
-
-      <button class="premium-buy"
-              onclick="buyPremium('3 Bulan','Rp 40.000')">
-        Beli Sekarang
-      </button>
-    </div>
-
-  </div>
-
-</section>
-
-    <section id="invite" class="page">
-      <div class="page-header">
-        <div class="page-icon">👤➕</div>
-        <div>
-          <h1>Undang Bot</h1>
-          <p>Bagikan dashboard kepada teman.</p>
-        </div>
-      </div>
-      <div class="card">
-        <button class="primary" onclick="notify('Link undangan disalin')">📋 Salin Link Undangan</button>
-      </div>
-    </section>
-
-  </main>
-
-</div>
-
-<div id="toast" class="toast"></div>
 
 <script>
+  let timeFormat = '24h';
+  const defaultTimezones = [
+    { name: 'Jakarta', tz: 'Asia/Jakarta' },
+    { name: 'London', tz: 'Europe/London' },
+    { name: 'New York', tz: 'America/New_York' },
+    { name: 'Tokyo', tz: 'Asia/Tokyo' },
+    { name: 'Sydney', tz: 'Australia/Sydney' }
+  ];
 
-let startTime = Date.now();
+  let customTimezones = [];
 
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("overlay").classList.toggle("show");
-}
-
-function showPage(page) {
-
-  document.querySelectorAll(".page").forEach(p => {
-    p.classList.remove("active-page");
-  });
-
-  const target = document.getElementById(page);
-
-  if (target) {
-    target.classList.add("active-page");
+  // Load custom timezones from localStorage
+  function loadCustomTimezones() {
+    const saved = localStorage.getItem('customTimezones');
+    if (saved) {
+      try {
+        customTimezones = JSON.parse(saved);
+      } catch (e) {
+        customTimezones = [];
+      }
+    }
   }
 
-  document.querySelectorAll(".nav-item").forEach(item => {
-    item.classList.remove("active");
-  });
-
-  if (window.innerWidth < 800) {
-    toggleSidebar();
-  }
-}
-
-function notify(message) {
-
-  const toast = document.getElementById("toast");
-
-  toast.textContent = message;
-  toast.classList.add("show");
-
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2500);
-}
-
-function toggleDark() {
-  document.body.classList.toggle("light");
-
-  const dark = !document.body.classList.contains("light");
-
-  localStorage.setItem("darkMode", dark);
-
-  notify(dark ? "Mode gelap aktif 🌙" : "Mode terang aktif ☀️");
-}
-
-function toggleLanguage() {
-
-  const text = document.getElementById("languageText");
-
-  if (text.textContent === "Indonesia") {
-    text.textContent = "English";
-    notify("Bahasa diubah ke English");
-  } else {
-    text.textContent = "Indonesia";
-    notify("Bahasa diubah ke Indonesia");
-  }
-}
-
-function logout() {
-  notify("Keluar dari dashboard");
-}
-
-function requestPairing() {
-
-  const number = document.getElementById("phoneNumber").value.trim();
-
-  if (!number) {
-    notify("Masukkan nomor WhatsApp terlebih dahulu ⚠️");
-    return;
+  // Save custom timezones to localStorage
+  function saveCustomTimezones() {
+    localStorage.setItem('customTimezones', JSON.stringify(customTimezones));
   }
 
-  if (!/^[0-9]+$/.test(number)) {
-    notify("Nomor hanya boleh berisi angka ⚠️");
-    return;
+  // Get all timezones to display
+  function getAllTimezones() {
+    return [...defaultTimezones, ...customTimezones];
   }
 
-  /*
-    DEMO UI:
-    Kode di bawah hanya simulasi tampilan.
-    Untuk pairing WhatsApp sungguhan,
-    hubungkan fungsi ini ke backend bot milikmu.
-  */
+  // Format time according to user preference
+  function formatTime(date) {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
 
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-  let code = "";
-
-  for (let i = 0; i < 8; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+    if (timeFormat === '24h') {
+      return `${hours}:${minutes}:${seconds}`;
+    } else {
+      let h = date.getHours();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      h = h ? h : 12;
+      return `${String(h).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+    }
   }
 
-  document.getElementById("pairCode").textContent = code;
-  document.getElementById("pairingBox").classList.remove("hidden");
+  // Update all clocks
+  function updateClocks() {
+    const container = document.getElementById('clocksContainer');
+    const timezones = getAllTimezones();
 
-  notify("Pairing code berhasil dibuat 🔐");
-}
+    if (container.children.length === 0) {
+      // Create clock cards for the first time
+      timezones.forEach((tz, index) => {
+        const card = document.createElement('div');
+        card.className = 'clock-card';
+        card.id = `clock-${index}`;
+        card.innerHTML = `
+          <button class="remove-btn" onclick="removeTimezone(${index})">×</button>
+          <div class="timezone-name">${tz.name}</div>
+          <div class="digital-time" id="time-${index}">--:--:--</div>
+          <div class="time-details">
+            <div id="date-${index}">Loading...</div>
+            <div id="offset-${index}">Loading...</div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
 
-function copyPairing() {
+    // Update time for each timezone
+    timezones.forEach((tz, index) => {
+      try {
+        const formatter = new Intl.DateTimeFormat('id-ID', {
+          timeZone: tz.tz,
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
 
-  const code = document.getElementById("pairCode").textContent;
+        const timeFormatter = new Intl.DateTimeFormat('id-ID', {
+          timeZone: tz.tz,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
 
-  if (code === "--------") return;
+        const date = new Date();
+        const localDate = new Date(date.toLocaleString('en-US', { timeZone: tz.tz }));
+        
+        const timeStr = formatTime(localDate);
+        const dateStr = formatter.format(date);
 
-  navigator.clipboard.writeText(code);
+        // Calculate offset
+        const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+        const tzDate = new Date(date.toLocaleString('en-US', { timeZone: tz.tz }));
+        const offset = (tzDate - utcDate) / (1000 * 60 * 60);
+        const offsetStr = `UTC ${offset >= 0 ? '+' : ''}${offset}`;
 
-  notify("Pairing code disalin 📋");
-}
+        const timeElement = document.getElementById(`time-${index}`);
+        const dateElement = document.getElementById(`date-${index}`);
+        const offsetElement = document.getElementById(`offset-${index}`);
 
-function openMenu(type) {
+        if (timeElement) timeElement.textContent = timeStr;
+        if (dateElement) dateElement.textContent = dateStr;
+        if (offsetElement) offsetElement.textContent = offsetStr;
+      } catch (e) {
+        console.error(`Error updating timezone ${tz.name}:`, e);
+      }
+    });
 
-  const menus = {
-    general: ".menu .help .ping .info .owner .runtime .speed",
-    fun: ".cekkhodam .cekpasangan .cekjodoh .ceknasib",
-    anime: ".anime .waifu .karakter",
-    game: ".tebakgambar .tebakkata .quiz .math",
-    group: ".tagall .hidetag .add .kick .promote .demote",
-    owner: ".addowner .delowner .addprem .restart"
-  };
+    // Update status
+    const statusText = document.getElementById('statusText');
+    if (statusText) {
+      const now = new Date();
+      statusText.textContent = `Last updated: ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    }
+  }
 
-  notify("Menu " + type.toUpperCase() + " dibuka");
-}
+  // Add custom timezone
+  function addCustomTimezone() {
+    const select = document.getElementById('timezoneSelect');
+    const tz = select.value;
 
-function updateRuntime() {
+    if (!tz) return;
 
-  const seconds = Math.floor(
-    (Date.now() - startTime) / 1000
-  );
+    // Get timezone name from option text
+    const option = select.options[select.selectedIndex];
+    const name = option.text.split('(')[0].trim();
 
-  const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
-  const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-  const s = String(seconds % 60).padStart(2, "0");
+    // Check if already exists
+    if (customTimezones.some(t => t.tz === tz)) {
+      alert('Zona waktu ini sudah ditambahkan!');
+      select.value = '';
+      return;
+    }
 
-  document.getElementById("runtime").textContent =
-    `${h}:${m}:${s}`;
+    customTimezones.push({ name, tz });
+    saveCustomTimezones();
+    select.value = '';
 
-}
+    // Rebuild clocks
+    document.getElementById('clocksContainer').innerHTML = '';
+    updateClocks();
+  }
 
-setInterval(updateRuntime, 1000);
+  // Remove timezone
+  function removeTimezone(index) {
+    if (index < defaultTimezones.length) {
+      alert('Tidak dapat menghapus zona waktu bawaan');
+      return;
+    }
 
-setInterval(() => {
+    const customIndex = index - defaultTimezones.length;
+    customTimezones.splice(customIndex, 1);
+    saveCustomTimezones();
 
-  const speed =
-    Math.floor(Math.random() * 40) + 10;
+    document.getElementById('clocksContainer').innerHTML = '';
+    updateClocks();
+  }
 
-  document.getElementById("speed").textContent =
-    speed + " ms";
+  // Toggle dark/light theme
+  function toggleTheme() {
+    document.body.classList.toggle('light-mode');
+    localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+  }
 
-}, 3000);
+  // Set time format
+  function setFormat(format) {
+    timeFormat = format;
+    document.querySelectorAll('.format-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    localStorage.setItem('timeFormat', format);
+    updateClocks();
+  }
 
-if (localStorage.getItem("darkMode") === "false") {
-  document.body.classList.add("light");
-}
+  // Reset to defaults
+  function resetClocks() {
+    if (confirm('Reset ke zona waktu default?')) {
+      customTimezones = [];
+      saveCustomTimezones();
+      document.getElementById('clocksContainer').innerHTML = '';
+      updateClocks();
+    }
+  }
 
+  // Initialize
+  function init() {
+    loadCustomTimezones();
+
+    // Load saved preferences
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-mode');
+    }
+
+    const savedFormat = localStorage.getItem('timeFormat');
+    if (savedFormat) {
+      timeFormat = savedFormat;
+      document.querySelectorAll('.format-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[onclick="setFormat('${savedFormat}')"]`)?.classList.add('active');
+    }
+
+    updateClocks();
+    setInterval(updateClocks, 1000);
+  }
+
+  // Start when page loads
+  window.addEventListener('load', init);
 </script>
-<script src="script.js"></script>
+
 </body>
-</html>
+  </html>
+  
